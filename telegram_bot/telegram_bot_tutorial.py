@@ -1,23 +1,21 @@
 import os
-from dotenv import dotenv_values, find_dotenv
-
-from openai import OpenAI
 import shelve
 import time
-
-env_path = find_dotenv()
-config = dotenv_values(env_path)
-#print(config)
-
 import logging
+import time
+import shelve
+import time
+import environ
+from openai import OpenAI
 from telegram import Update, User
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
 
-import time
-from openai import OpenAI
+
+env = environ.Env()
+environ.Env.read_env()
 
 
-client = OpenAI(api_key=config['OPENAI_API_KEY'])
+client = OpenAI(env['OPENAI_API_KEY'])
 
 # assistant = client.beta.assistants.create(
 #     name="Chat bot assistant",
@@ -37,7 +35,7 @@ def generate_response(message_body):
     )
 
 def run_assistant():
-    assistant = client.beta.assistants.retrieve(config['ASSISTANT_ID'])
+    assistant = client.beta.assistants.retrieve(env['ASSISTANT_ID'])
     thread = client.beta.threads.retrieve()
 
     run = client.beta.threads.runs.create(
@@ -83,7 +81,7 @@ async def assistant_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(config['TOKEN']).build()
+    application = ApplicationBuilder().token(env['TOKEN']).build()
     
     start_handler = CommandHandler('start', start)
     message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), assistant_answer)
